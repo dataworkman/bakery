@@ -1,0 +1,26 @@
+<% content_for :title, "New Cake Order" %>
+
+<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-amber-100 relative">
+    <!-- Decorative blobs -->
+    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 rounded-full bg-orange-100 opacity-50 blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-amber-100 opacity-50 blur-2xl pointer-events-none"></div>
+    
+    <div class="bg-gradient-to-br from-amber-500 via-amber-400 to-orange-400 px-6 py-10 text-center relative shadow-inner">
+      <h1 class="text-3xl font-extrabold text-white tracking-tight sm:text-5xl drop-shadow-md">
+        🎂 New Cake Order
+      </h1>
+      <p class="mt-3 text-amber-50 font-medium text-lg max-w-xl mx-auto drop-shadow">
+        Enter the custom cake details clearly to ensure the factory produces exactly what the customer envisioned!
+      </p>
+    </div>
+
+    <div class="px-6 py-10 sm:p-12 relative bg-white/60 backdrop-blur-sm z-10">
+      <%= render "form", order: @order %>
+    </div>
+    
+    <div class="px-6 py-5 bg-gray-50 border-t border-gray-100 text-center z-10 relative">
+      <%= link_to "← Back to Store Dashboard", orders_path, class: "text-amber-600 hover:text-amber-500 font-bold transition-colors duration-200" %>
+    </div>
+  </div>
+</div>
