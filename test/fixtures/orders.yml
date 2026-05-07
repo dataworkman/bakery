@@ -1,0 +1,19 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  order_number: MyString
+  store_name: MyString
+  manager_name: MyString
+  order_date: 2026-04-03
+  pickup_date: 2026-04-03 07:13:35
+  customer_name: MyString
+  cake_description: MyText
+
+two:
+  order_number: MyString
+  store_name: MyString
+  manager_name: MyString
+  order_date: 2026-04-03
+  pickup_date: 2026-04-03 07:13:35
+  customer_name: MyString
+  cake_description: MyText

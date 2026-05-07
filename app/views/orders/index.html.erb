@@ -1,0 +1,181 @@
+<% content_for :title, "Factory Dashboard" %>
+
+<div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <% if notice.present? %>
+    <div class="rounded-xl bg-green-50 p-4 mb-8 border border-green-200">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-green-800"><%= notice %></p>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="flex flex-col md:flex-row justify-between items-center mb-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+    <div>
+      <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Factory Dashboard</h1>
+      <p class="text-gray-500 mt-1">Manage and review all custom cake orders across branches.</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+      <% if Current.user&.master? %>
+        <%= link_to "Staff Mgmt", admin_users_path, class: "rounded-xl bg-white border border-gray-200 text-gray-700 px-6 py-3 font-bold shadow-sm hover:shadow-md hover:bg-gray-50 transition-all hover:-translate-y-0.5 inline-block text-center" %>
+      <% end %>
+
+      <% if Current.user %>
+        <%= button_to "Log out", session_path, method: :delete, class: "rounded-xl bg-white border border-red-200 text-red-600 px-6 py-3 font-bold shadow-sm hover:shadow-md hover:bg-red-50 transition-all hover:-translate-y-0.5 inline-block cursor-pointer text-center" %>
+      <% end %>
+      <%= link_to "+ New Custom Order", new_order_path, class: "rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 inline-block text-center" %>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8">
+    <%= form_with url: orders_path, method: :get, class: "grid grid-cols-1 md:grid-cols-4 gap-6 items-end" do |f| %>
+      <div class="space-y-2">
+        <label class="block text-sm font-bold text-gray-700">Group By</label>
+        <div class="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50">
+          <%= f.radio_button :group_by, 'store', checked: @group_by == 'store', class: "hidden peer/store", onchange: "this.form.requestSubmit()" %>
+          <label for="group_by_store" class="px-4 py-2 rounded-md text-sm font-bold cursor-pointer transition-all peer-checked/store:bg-white peer-checked/store:text-amber-600 peer-checked/store:shadow-sm text-gray-500 hover:text-gray-700">Branches</label>
+          
+          <%= f.radio_button :group_by, 'date', checked: @group_by == 'date', class: "hidden peer/date", onchange: "this.form.requestSubmit()" %>
+          <label for="group_by_date" class="px-4 py-2 rounded-md text-sm font-bold cursor-pointer transition-all peer-checked/date:bg-white peer-checked/date:text-amber-600 peer-checked/date:shadow-sm text-gray-500 hover:text-gray-700">Dates</label>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <label class="block text-sm font-bold text-gray-700">Filter Branch</label>
+        <%= f.select :store_name, Order::STORES, { include_blank: "All Branches", selected: params[:store_name] }, { class: "w-full rounded-xl border-gray-200 text-sm font-medium focus:ring-amber-500 focus:border-amber-500 py-2.5", onchange: "this.form.requestSubmit()" } %>
+      </div>
+
+      <div class="space-y-2 col-span-1 md:col-span-2">
+        <label class="block text-sm font-bold text-gray-700">Order Period</label>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex-1 min-w-[130px]">
+            <%= f.date_field :start_date, value: params[:start_date], class: "w-full rounded-xl border-gray-200 text-sm font-medium focus:ring-amber-500 focus:border-amber-500 py-2.5", onchange: "this.form.requestSubmit()" %>
+          </div>
+          <span class="text-gray-400 hidden sm:inline">~</span>
+          <div class="flex-1 min-w-[130px]">
+            <%= f.date_field :end_date, value: params[:end_date], class: "w-full rounded-xl border-gray-200 text-sm font-medium focus:ring-amber-500 focus:border-amber-500 py-2.5", onchange: "this.form.requestSubmit()" %>
+          </div>
+          <%= link_to "Reset", orders_path, class: "text-sm text-gray-400 hover:text-amber-600 font-bold px-2 whitespace-nowrap" if params[:store_name].present? || params[:start_date].present? || params[:end_date].present? %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+
+  <div id="orders" class="space-y-12">
+    <% if @grouped_orders.any? %>
+      <% @grouped_orders.each do |store_name, orders| %>
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200 relative">
+          <!-- Store Header -->
+          <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-5 border-b border-gray-200 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <span class="flex items-center justify-center h-12 w-12 rounded-full bg-amber-500 text-white font-bold text-xl shadow-inner">
+                <%= @group_by == 'date' ? "📅" : (store_name.presence ? store_name.first : "?") %>
+              </span>
+              <h2 class="text-2xl font-black text-gray-900 tracking-tight">
+                <%= @group_by == 'date' ? Date.parse(store_name).strftime("%Y-%m-%d (%a)") : (store_name.presence || "Unknown Store") %>
+              </h2>
+            </div>
+
+            <span class="inline-flex items-center rounded-full bg-amber-100 px-4 py-1 text-sm font-bold text-amber-800 border border-amber-200 shadow-sm"><%= orders.size %> Orders</span>
+          </div>
+          
+          <div class="bg-white">
+            <!-- Table View (hidden on small screens) -->
+            <div class="hidden sm:block overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50 uppercase text-xs font-bold text-gray-500 tracking-wider">
+                  <tr>
+                    <th class="px-6 py-4 text-left">Order #</th>
+                    <th class="px-6 py-4 text-left">Customer</th>
+                    <th class="px-6 py-4 text-left">Pickup Date</th>
+                    <th class="px-6 py-4 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 italic-none">
+                  <% orders.each do |order| %>
+                    <tr class="hover:bg-amber-50/30 transition-colors group">
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center rounded-md bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-600/20 shadow-sm font-mono tracking-tight">
+                          <%= order.order_number.presence || "PENDING" %>
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-bold text-gray-900"><%= order.customer_name %></div>
+                        <div class="text-xs text-gray-500 truncate max-w-[150px]"><%= order.cake_description %></div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        <%= order.pickup_date&.strftime("%Y-%m-%d %H:%M") || "TBD" %>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-xs font-bold">
+                        <div class="flex justify-end items-center space-x-2">
+                          <%= link_to "View", order, class: "px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all shadow-sm" %>
+                          <%= link_to "Edit", edit_order_path(order), class: "px-3 py-1.5 bg-white border border-gray-200 text-blue-600 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm" %>
+                          <%= button_to order, method: :delete, class: "px-3 py-1.5 bg-white border border-red-100 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all cursor-pointer shadow-sm", data: { turbo_confirm: "Are you sure you want to delete this order?" } do %>
+                            Delete
+                          <% end %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Mobile Card View (shown only on small screens) -->
+            <div class="sm:hidden divide-y divide-gray-100">
+              <% orders.each do |order| %>
+                <div class="p-6 space-y-4 hover:bg-amber-50/20 transition-colors">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <span class="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 ring-1 ring-inset ring-amber-600/20 mb-2 font-mono">
+                        <%= order.order_number.presence || "PENDING" %>
+                      </span>
+                      <h3 class="text-lg font-bold text-gray-900"><%= order.customer_name %></h3>
+                    </div>
+                    <p class="text-sm font-bold text-amber-600">
+                      📅 <%= order.pickup_date&.strftime("%m-%d %H:%M") || "TBD" %>
+                    </p>
+                  </div>
+                  
+                  <p class="text-sm text-gray-600 line-clamp-2 italic">
+                    "<%= order.cake_description %>"
+                  </p>
+
+                  <div class="flex items-center justify-between pt-2">
+                    <div class="text-xs text-gray-400">
+                      Mgr: <%= order.manager_name %>
+                    </div>
+                    <div class="flex space-x-2">
+                      <%= link_to "View", order, class: "px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold shadow-sm" %>
+                      <%= link_to "Edit", edit_order_path(order), class: "px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-sm" %>
+                      <%= button_to order, method: :delete, class: "px-4 py-2 bg-red-50 to-orange-500 text-red-500 border border-red-100 rounded-xl text-xs font-bold shadow-sm cursor-pointer", data: { turbo_confirm: "Delete this order?" } do %>
+                        Del
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+        </div>
+      <% end %>
+    <% else %>
+      <div class="text-center bg-white rounded-3xl shadow-sm border border-gray-200 p-16">
+        <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <h3 class="mt-2 text-lg font-bold text-gray-900">No Orders Yet</h3>
+        <p class="mt-1 text-gray-500">Wait for branches to submit their cake orders.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
