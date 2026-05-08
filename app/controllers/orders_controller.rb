@@ -20,8 +20,8 @@ class OrdersController < ApplicationController
     end
 
     # Grouping
-    @group_by = params[:group_by] || 'store'
-    if @group_by == 'date'
+    @group_by = params[:group_by] || "store"
+    if @group_by == "date"
       @grouped_orders = @orders.group_by { |o| o.order_date.to_s }
     else
       @grouped_orders = @orders.group_by(&:store_name)

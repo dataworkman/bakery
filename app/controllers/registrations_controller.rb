@@ -7,7 +7,7 @@ class RegistrationsController < ApplicationController
 
   def create
     @user = User.new(registration_params)
-    
+
     if @user.save
       if @user.approved?
         redirect_to new_session_path, notice: "Account created and automatically approved (First Admin)! Please log in."

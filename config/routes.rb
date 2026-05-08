@@ -3,11 +3,11 @@ Rails.application.routes.draw do
   resource :session
   get "signup", to: "registrations#new"
   post "signup", to: "registrations#create"
-  
+
   namespace :admin do
-    resources :users, only: [:index, :update]
+    resources :users, only: [ :index, :update ]
   end
-  
+
   resources :passwords, param: :token
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

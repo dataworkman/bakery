@@ -1,5 +1,7 @@
 class AddMasterToUsers < ActiveRecord::Migration[8.1]
   def change
-    add_column :users, :master, :boolean
+    unless column_exists?(:users, :master)
+      add_column :users, :master, :boolean, default: false
+    end
   end
 end

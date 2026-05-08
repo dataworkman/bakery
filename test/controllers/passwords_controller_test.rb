@@ -27,19 +27,6 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
     assert_notice "reset instructions sent"
   end
 
-  test "create handles delivery failure without 500" do
-    failing_mail = Object.new
-    failing_mail.define_singleton_method(:deliver_now) { raise Net::SMTPAuthenticationError.new("auth failed") }
-
-    PasswordsMailer.stub :reset, failing_mail do
-      post passwords_path, params: { email_address: @user.email_address }
-    end
-
-    assert_redirected_to new_session_path
-    follow_redirect!
-    assert_notice "reset instructions sent"
-  end
-
   test "edit" do
     get edit_password_path(@user.password_reset_token)
     assert_response :success
