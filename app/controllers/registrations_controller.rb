@@ -9,11 +9,7 @@ class RegistrationsController < ApplicationController
     @user = User.new(registration_params)
 
     if @user.save
-      if @user.approved?
-        redirect_to new_session_path, notice: "Account created and automatically approved (First Admin)! Please log in."
-      else
-        redirect_to new_session_path, notice: "Account created successfully! Please wait for an admin to approve your account before logging in."
-      end
+      redirect_to new_session_path, notice: "Account created successfully! Please wait for an admin to approve your account before logging in."
     else
       render :new, status: :unprocessable_entity
     end

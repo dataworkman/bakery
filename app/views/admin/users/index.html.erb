@@ -47,13 +47,17 @@
                 <% end %>
               </td>
               <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-medium">
-                <%= form_with model: user, url: admin_user_path(user), method: :patch, class: "inline flex justify-end" do |f| %>
-                  <% if user.approved? %>
-                    <%= f.hidden_field :approved, value: false %>
-                    <%= f.submit "Revoke Access", class: "text-red-600 hover:text-red-900 font-bold bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-sm" %>
-                  <% else %>
-                    <%= f.hidden_field :approved, value: true %>
-                    <%= f.submit "Approve User", class: "text-blue-600 hover:text-blue-900 font-bold bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-sm" %>
+                <% if user.master? %>
+                  <span class="text-xs font-black text-gray-400 uppercase tracking-widest">Master</span>
+                <% else %>
+                  <%= form_with model: user, url: admin_user_path(user), method: :patch, class: "inline flex justify-end" do |f| %>
+                    <% if user.approved? %>
+                      <%= f.hidden_field :approved, value: false %>
+                      <%= f.submit "Revoke Access", class: "text-red-600 hover:text-red-900 font-bold bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-sm" %>
+                    <% else %>
+                      <%= f.hidden_field :approved, value: true %>
+                      <%= f.submit "Approve User", class: "text-blue-600 hover:text-blue-900 font-bold bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-lg cursor-pointer transition-colors shadow-sm" %>
+                    <% end %>
                   <% end %>
                 <% end %>
               </td>
@@ -81,13 +85,17 @@
 
           <div class="flex justify-between items-center text-xs">
             <span class="text-gray-500 font-medium">Joined: <%= user.created_at.strftime("%Y-%m-%d") %></span>
-            <%= form_with model: user, url: admin_user_path(user), method: :patch, class: "inline" do |f| %>
-              <% if user.approved? %>
-                <%= f.hidden_field :approved, value: false %>
-                <%= f.submit "Revoke", class: "text-red-600 font-black px-3 py-1.5 bg-red-50 rounded-lg" %>
-              <% else %>
-                <%= f.hidden_field :approved, value: true %>
-                <%= f.submit "Approve", class: "text-blue-600 font-black px-3 py-1.5 bg-blue-50 rounded-lg" %>
+            <% if user.master? %>
+              <span class="font-black text-gray-400 uppercase tracking-widest">Master</span>
+            <% else %>
+              <%= form_with model: user, url: admin_user_path(user), method: :patch, class: "inline" do |f| %>
+                <% if user.approved? %>
+                  <%= f.hidden_field :approved, value: false %>
+                  <%= f.submit "Revoke", class: "text-red-600 font-black px-3 py-1.5 bg-red-50 rounded-lg" %>
+                <% else %>
+                  <%= f.hidden_field :approved, value: true %>
+                  <%= f.submit "Approve", class: "text-blue-600 font-black px-3 py-1.5 bg-blue-50 rounded-lg" %>
+                <% end %>
               <% end %>
             <% end %>
           </div>

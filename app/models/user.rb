@@ -4,18 +4,14 @@ class User < ApplicationRecord
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
-  before_create :auto_approve_first_user
+  validates :password, length: { minimum: 8 }, allow_nil: true
 
-  def master?
-    self.respond_to?(:master) && !!self.master
-  end
+  # Revoking approval must also end sessions that are already signed in.
+  after_update_commit :end_sessions, if: -> { saved_change_to_approved? && !approved? }
 
   private
 
-  def auto_approve_first_user
-    if User.count == 0
-      self.approved = true
-      self.master = true
-    end
+  def end_sessions
+    sessions.destroy_all
   end
 end

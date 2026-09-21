@@ -8,11 +8,7 @@ class PasswordsController < ApplicationController
 
   def create
     if user = User.find_by(email_address: params[:email_address])
-      begin
-        PasswordsMailer.reset(user).deliver_now
-      rescue StandardError => e
-        Rails.logger.error("Password reset email failed for #{user.id}: #{e.class} - #{e.message}")
-      end
+      PasswordsMailer.reset(user).deliver_later
     end
 
     redirect_to new_session_path, notice: "Password reset instructions sent (if user with that email address exists)."
@@ -26,7 +22,7 @@ class PasswordsController < ApplicationController
       @user.sessions.destroy_all
       redirect_to new_session_path, notice: "Password has been reset."
     else
-      redirect_to edit_password_path(params[:token]), alert: "Passwords did not match."
+      redirect_to edit_password_path(params[:token]), alert: @user.errors.full_messages.to_sentence.presence || "Passwords did not match."
     end
   end
 
