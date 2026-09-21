@@ -66,4 +66,30 @@ class OrderTest < ActiveSupport::TestCase
   test "an order without a new image stays valid" do
     assert orders(:one).valid?
   end
+
+  test "generated order numbers never collide with an existing one" do
+    taken = Order.create!(valid_attributes)
+    suffix = taken.order_number.split("-").last
+    fresh = %w[ ZZZZ ]
+    values = [ suffix, suffix, *fresh ] # two collisions, then a free value
+
+    original = SecureRandom.method(:alphanumeric)
+    SecureRandom.define_singleton_method(:alphanumeric) { |*| values.shift || original.call(4) }
+    begin
+      order = Order.create!(valid_attributes)
+    ensure
+      SecureRandom.define_singleton_method(:alphanumeric, original)
+    end
+
+    assert_equal "20260403-DUL-ZZZZ", order.order_number
+    assert_not_equal taken.order_number, order.order_number
+  end
+
+  test "database rejects duplicate order numbers" do
+    existing = orders(:one)
+
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      Order.new(valid_attributes(order_number: existing.order_number)).save!(validate: false)
+    end
+  end
 end
