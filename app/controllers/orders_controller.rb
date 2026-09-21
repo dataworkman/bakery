@@ -1,10 +1,16 @@
 class OrdersController < ApplicationController
-  allow_unauthenticated_access only: %i[ new create ]
   before_action :set_order, only: %i[ show edit update destroy ]
+  before_action :require_master, only: :destroy
+
+  PER_PAGE = 50
 
   # GET /orders or /orders.json
   def index
-    @orders = Order.with_attached_cake_image.order(order_date: :desc, created_at: :desc)
+    @group_by = params[:group_by] == "date" ? "date" : "store"
+
+    @orders = Order.with_attached_cake_image
+    @orders = @group_by == "store" ? @orders.order(:store_name) : @orders
+    @orders = @orders.order(order_date: :desc, created_at: :desc)
 
     # Filtering
     if params[:store_name].present?
@@ -19,8 +25,12 @@ class OrdersController < ApplicationController
       @orders = @orders.where("order_date <= ?", params[:end_date])
     end
 
+    # Pagination
+    @total_pages = [ (@orders.count / PER_PAGE.to_f).ceil, 1 ].max
+    @page = params[:page].to_i.clamp(1, @total_pages)
+    @orders = @orders.limit(PER_PAGE).offset((@page - 1) * PER_PAGE)
+
     # Grouping
-    @group_by = params[:group_by] || "store"
     if @group_by == "date"
       @grouped_orders = @orders.group_by { |o| o.order_date.to_s }
     else
@@ -86,8 +96,14 @@ class OrdersController < ApplicationController
       @order = Order.find(params.expect(:id))
     end
 
+    def require_master
+      unless Current.user&.master?
+        redirect_to orders_path, alert: "Only master users can delete orders.", status: :see_other
+      end
+    end
+
     # Only allow a list of trusted parameters through.
     def order_params
-      params.expect(order: [ :order_number, :store_name, :manager_name, :order_date, :pickup_date, :customer_name, :cake_description, :cake_image ])
+      params.expect(order: [ :store_name, :manager_name, :order_date, :pickup_date, :customer_name, :cake_description, :cake_image ])
     end
 end

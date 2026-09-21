@@ -1,5 +1,27 @@
 # Bakery App
 
+Rails 8 app for managing custom cake orders across branches. Staff sign up, a master user approves them, and approved staff create and review orders (grouped by branch or date). Only master users can delete orders or manage staff.
+
+## Local development
+
+```bash
+bin/setup            # install gems, prepare the database
+bin/dev              # Rails server + Tailwind watcher
+bin/rails test       # test suite
+```
+
+## First admin (master) account
+
+Sign-ups are never auto-approved. Create the first master account from the console instead:
+
+```bash
+bin/rails users:create_master EMAIL=owner@example.com PASSWORD=choose-a-long-password
+# production (Kamal)
+bin/kamal app exec --reuse "bin/rails users:create_master EMAIL=owner@example.com PASSWORD=..."
+```
+
+Running it for an existing email promotes that user to an approved master (the password is only changed if `PASSWORD` is given).
+
 ## Password reset email setup
 
 Password reset uses Action Mailer. Set these environment variables in production:

@@ -7,7 +7,10 @@ class Admin::UsersController < ApplicationController
 
   def update
     @user = User.find(params[:id])
-    if @user.update(user_params)
+
+    if @user.master?
+      redirect_to admin_users_path, alert: "Master accounts cannot be changed here."
+    elsif @user.update(user_params)
       redirect_to admin_users_path, notice: "User '#{@user.email_address}' status updated."
     else
       redirect_to admin_users_path, alert: "Failed to update user status."

@@ -16,6 +16,12 @@
     </div>
   <% end %>
 
+  <% if alert.present? %>
+    <div class="rounded-xl bg-red-50 p-4 mb-8 border border-red-200">
+      <p class="text-sm font-medium text-red-800"><%= alert %></p>
+    </div>
+  <% end %>
+
   <div class="flex flex-col md:flex-row justify-between items-center mb-10 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
     <div>
       <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Factory Dashboard</h1>
@@ -118,8 +124,10 @@
                         <div class="flex justify-end items-center space-x-2">
                           <%= link_to "View", order, class: "px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all shadow-sm" %>
                           <%= link_to "Edit", edit_order_path(order), class: "px-3 py-1.5 bg-white border border-gray-200 text-blue-600 rounded-lg hover:bg-blue-50 hover:border-blue-200 transition-all shadow-sm" %>
-                          <%= button_to order, method: :delete, class: "px-3 py-1.5 bg-white border border-red-100 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all cursor-pointer shadow-sm", data: { turbo_confirm: "Are you sure you want to delete this order?" } do %>
-                            Delete
+                          <% if Current.user&.master? %>
+                            <%= button_to order, method: :delete, class: "px-3 py-1.5 bg-white border border-red-100 text-red-400 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all cursor-pointer shadow-sm", data: { turbo_confirm: "Are you sure you want to delete this order?" } do %>
+                              Delete
+                            <% end %>
                           <% end %>
                         </div>
                       </td>
@@ -156,8 +164,10 @@
                     <div class="flex space-x-2">
                       <%= link_to "View", order, class: "px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold shadow-sm" %>
                       <%= link_to "Edit", edit_order_path(order), class: "px-4 py-2 bg-blue-500 text-white rounded-xl text-xs font-bold shadow-sm" %>
-                      <%= button_to order, method: :delete, class: "px-4 py-2 bg-red-50 to-orange-500 text-red-500 border border-red-100 rounded-xl text-xs font-bold shadow-sm cursor-pointer", data: { turbo_confirm: "Delete this order?" } do %>
-                        Del
+                      <% if Current.user&.master? %>
+                        <%= button_to order, method: :delete, class: "px-4 py-2 bg-red-50 to-orange-500 text-red-500 border border-red-100 rounded-xl text-xs font-bold shadow-sm cursor-pointer", data: { turbo_confirm: "Delete this order?" } do %>
+                          Del
+                        <% end %>
                       <% end %>
                     </div>
                   </div>
@@ -178,4 +188,16 @@
       </div>
     <% end %>
   </div>
+
+  <% if @total_pages > 1 %>
+    <nav class="mt-10 flex items-center justify-center space-x-4 text-sm font-bold" aria-label="Pagination">
+      <% if @page > 1 %>
+        <%= link_to "← Previous", orders_path(request.query_parameters.merge(page: @page - 1)), class: "px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 shadow-sm hover:bg-gray-50" %>
+      <% end %>
+      <span class="text-gray-500">Page <%= @page %> of <%= @total_pages %></span>
+      <% if @page < @total_pages %>
+        <%= link_to "Next →", orders_path(request.query_parameters.merge(page: @page + 1)), class: "px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 shadow-sm hover:bg-gray-50" %>
+      <% end %>
+    </nav>
+  <% end %>
 </div>
